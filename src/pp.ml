@@ -76,7 +76,7 @@ let rec fpf_id_list ppf (xs:id list) =
   | [x]   -> fpf ppf "%a" ident x
   | x::xs -> fpf ppf "%a,@ %a" ident x fpf_id_list xs
 
-let rec fpf_pat ppf (p:pat) =
+let fpf_pat ppf (p:pat) =
   match p with
   | PCtor (c, xs) ->
       fpf ppf "@[<2>%a" ident c;
@@ -235,11 +235,11 @@ let rec fpf_decls ppf (ds:decl list) =
   | [d]   -> fpf ppf "%a" fpf_decl d
   | d::ds -> fpf ppf "%a@\n@\n%a" fpf_decl d fpf_decls ds
 
-let rec fpf_synth_problem ppf ((x, t, es):synth_problem) =
+let fpf_synth_problem ppf ((x, t, es):synth_problem) =
   fpf ppf "@[<2>let %a : %a |>@ { %a } =@ ?@]"
     ident x fpf_typ (0, t) fpf_exp_list es
 
-let rec fpf_prog ppf ((ds, p):prog) =
+let fpf_prog ppf ((ds, p):prog) =
   if List.length ds > 0 then
     fpf ppf "%a@\n@\n%a" fpf_decls ds fpf_synth_problem p
   else

@@ -1,51 +1,15 @@
-OCBFLAGS :=
-OCB := ocamlbuild $(OCBFLAGS)
+debug:
+	dune build src --profile dev
 
-.PHONY: all debug clean top profile gen-baselines check-baselines
+release:
+	dune build src --profile release
 
-all: synml.native
-debug: all synml.cma
+deps:
+	opam install dune core menhir js_of_ocaml tyxml 
 
-%.cma: .FORCE
-	$(OCB) $@
-
-%.cmxa: .FORCE
-	$(OCB) $@
-
-%.native: .FORCE
-	$(OCB) $@
-
-%.p.native: .FORCE
-	$(OCB) $@
-
-%.byte: .FORCE
-	$(OCB) $@
-
-.FORCE:
+open: release
+	firefox _build/default/src/www/myth.html &
 
 clean:
-	$(OCB) -clean
+	dune clean
 
-top: synml.cma
-	utop
-
-CHECK_BASELINE := python check-baseline.py
-
-check-baselines: synml.native
-	$(CHECK_BASELINE) ./synml.native tests/ast
-	$(CHECK_BASELINE) ./synml.native tests/bool
-	$(CHECK_BASELINE) ./synml.native tests/nat
-	$(CHECK_BASELINE) ./synml.native tests/natlist
-	$(CHECK_BASELINE) ./synml.native tests/tree
-
-GENERATE_DATA := python generate-data.py
-
-generate-data: synml.native
-	@$(GENERATE_DATA) ./synml.native tests/ast
-	@$(GENERATE_DATA) ./synml.native tests/bool
-	@$(GENERATE_DATA) ./synml.native tests/nat
-	@$(GENERATE_DATA) ./synml.native tests/natlist
-	@$(GENERATE_DATA) ./synml.native tests/tree
-
-profile: synml_profile.p.native
-	instruments -t "/Applications/Xcode.app/Contents/Applications/Instruments.app/Contents/Resources/templates/Time Profiler.tracetemplate" synml_profile.p.native

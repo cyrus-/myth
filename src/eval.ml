@@ -1,7 +1,6 @@
 open Core_kernel
 open Consts
 open Lang
-open Pp
 
 exception Eval_error of string
 
@@ -113,7 +112,7 @@ let rec eval (env:env) (e:exp) : value =
         closure := (f, v) :: env; v
     end
   in
-    (Hashtbl.set memo_eval_tbl key ans; ans)
+    (Hashtbl.set memo_eval_tbl ~key:key ~data:ans; ans)
 
 let gen_init_env (ds:decl list) : env =
   let process env = function

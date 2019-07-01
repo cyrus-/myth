@@ -1,0 +1,7 @@
+/* stylesheet used by myth.html */
+
+.output {
+  white-space: pre;
+  font-family: monospace;
+}
+

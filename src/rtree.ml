@@ -100,7 +100,7 @@ type scrutinee_val = { e:exp; vs:eval_val list }
 (***** Split graph construction helpers {{{ *****)
 
 (* Splits the evidence as input-output (function) examples *)
-let split_io_evidence (f:id) (x:id) (env:env) (vs:evidence list) : evidence list =
+let split_io_evidence (f:id) (x:id) (_env:env) (vs:evidence list) : evidence list =
   List.map ~f:begin fun (env', v) ->
     let fbind = (f, v) in
     match v with
@@ -138,7 +138,7 @@ let make_pattern (s:Sig.t) (g:Ctx.t) (c:id) : pat =
       ~init:[] ts |> List.rev)
   | None -> failwith "make_pattern: constructor not found"
 
-let rec evaluate_to_values (s:Sig.t) (initenv:env) (vs:evidence list) (e:exp) : scrutinee_val =
+let evaluate_to_values (_:Sig.t) (initenv:env) (vs:evidence list) (e:exp) : scrutinee_val =
   let vs = List.fold_right ~f:(fun (env, v) acc ->
     try
       { value = Eval.eval (env @ initenv) e; env = env; goal = v } :: acc
@@ -148,7 +148,7 @@ let rec evaluate_to_values (s:Sig.t) (initenv:env) (vs:evidence list) (e:exp) : 
     { e = e; vs = vs }
 
 (* Evaluates the given expression to a constructor value *)
-let rec evaluate_to_ctors (sv:scrutinee_val) : ctor_val list =
+let evaluate_to_ctors (sv:scrutinee_val) : ctor_val list =
   List.map ~f:(fun ev ->
     match ev.value with
     | VCtor (c, vs) -> (c, vs, ev.env, ev.goal)
@@ -172,7 +172,7 @@ let check_recursive_arg_match (g:Ctx.t) (e:exp) : id option =
 let distribute_constraints (s:Sig.t) (g:Ctx.t) (e:exp) (ctors:ctor_val list) : synth_branch list =
   if List.length ctors = 0 then [] else
   let dt = List.hd_exn ctors |> datatype_of_ctor_val s in
-    Sig.gather_ctors dt s |> List.map ~f:begin fun (c, (ts, _)) ->
+    Sig.gather_ctors dt s |> List.map ~f:begin fun (c, (_, _)) ->
       let p  = make_pattern s g c in
       let g' = begin match check_recursive_arg_match g e with
         | Some f -> Ctx.gather_binders s p |> Ctx.mark_as_decreasing f
@@ -225,7 +225,7 @@ let rec create_rtree (s:Sig.t) (g:Ctx.t) (env:env) (t:typ) (vs:evidence list) (m
 
 (* Creates a single match for the given synthesis problem and scrutinee expression. *)
 and create_match_one (s:Sig.t) (g:Ctx.t) (env:env) (t:typ)
-                     (vs:evidence list) (sv:scrutinee_val) (matches:int) : rmatch option =
+                     (_vs:evidence list) (sv:scrutinee_val) (matches:int) : rmatch option =
   (* NOTE: If evaluation of the potential scrutinee results in no evidence
    * generated (because all examples resulted in bad pattern matches), then
    * reject this scrutinee immediately. *)
@@ -233,7 +233,7 @@ and create_match_one (s:Sig.t) (g:Ctx.t) (env:env) (t:typ)
   if List.length ctorvals = 0 then None else
   let branches = distribute_constraints s g sv.e ctorvals in
   if not (is_adequate_distribution branches) then None else
-  let trees = List.map ~f:(fun (c, p, g, vs) -> (p, create_rtree s g env t vs (matches-1))) branches in
+  let trees = List.map ~f:(fun (_c, p, g, vs) -> (p, create_rtree s g env t vs (matches-1))) branches in
   Some (sv.e, trees)
 
 (* Creates match nodes for the given synthesis problem. *)

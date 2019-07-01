@@ -1,0 +1,19 @@
+(include_subdirs unqualified) ; does not include dirs that specify `(include_subdirs no)`
+
+(alias
+  (name default)
+  (deps (glob_files www/*)))
+
+(executable 
+  (name myth)
+  (js_of_ocaml (flags (:standard)))
+  (libraries js_of_ocaml.tyxml tyxml core_kernel)
+  (preprocess (pps js_of_ocaml.ppx)))
+
+(ocamllex 
+  (modules lexer))
+
+(menhir
+  (infer false)
+  (modules parser))
+

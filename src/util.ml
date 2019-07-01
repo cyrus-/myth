@@ -14,21 +14,21 @@ let rec remove_first (f:'a -> bool) (l:'a list) : 'a list =
   | x::l -> if f x then l else x::(remove_first f l)
 
 (* Returns [0; ...; n-1] *)
-let rec range (n:int) : int list =
+let range (n:int) : int list =
   let rec f acc n =
     if n < 0 then acc else f (n :: acc) (n-1)
   in
   f [] (n-1)
 
 (* Returns [1; ...; n] *)
-let rec range1 (n:int) : int list =
+let range1 (n:int) : int list =
   let rec f acc n =
     if n <= 0 then acc else f (n :: acc) (n-1)
   in
     f [] n
 
 (* Returns [n; ...; m] *)
-let rec rangen (n:int) (m:int) : int list =
+let rangen (n:int) (m:int) : int list =
   let rec f acc n =
     if n > m then acc else f (n :: acc) (n+1)
   in
@@ -117,18 +117,18 @@ let rec disjoint (l1:'a list) (l2:'a list) : bool =
   | [] -> true
   | x::l1 -> if List.mem x l2 then false else disjoint l1 l2
 
-let rec is_some : 'a option -> bool =
-  function | Some v -> true | None -> false
+let is_some : 'a option -> bool =
+  function | Some _ -> true | None -> false
 
 type ('a, 'b) either = Left of 'a | Right of 'b
 
 let rec all_eq (p:'a -> 'a -> bool) (l:'a list) : bool =
   match l with
   | [] -> true
-  | [x] -> true
+  | [_] -> true
   | x::y::l -> if not (p x y) then false else all_eq p (y::l)
 
-let rec partition (n:int) (l:'a list) : 'a list * 'a * 'a list =
+let partition (n:int) (l:'a list) : 'a list * 'a * 'a list =
   let rec search pre n post =
     if n = 0 then
       (pre, List.hd post, List.tl post)
@@ -140,7 +140,7 @@ let rec partition (n:int) (l:'a list) : 'a list * 'a * 'a list =
     else
       raise @@ Invalid_argument "(partition) index out of range"
 
-let rec separate ~f:(f:'a -> bool) (l:'a list) : 'a list * 'a list =
+let separate ~f:(f:'a -> bool) (l:'a list) : 'a list * 'a list =
   let rec sep acc l =
     match l with
     | [] -> acc
@@ -150,7 +150,7 @@ let rec separate ~f:(f:'a -> bool) (l:'a list) : 'a list * 'a list =
   in
     sep ([], []) l
 
-let rec time_action ~f:(f: unit -> 'a) : float * 'a =
+let time_action ~f:(f: unit -> 'a) : float * 'a =
   let t1  = Unix.gettimeofday () in
   let res = f () in
   let t2  = Unix.gettimeofday () in

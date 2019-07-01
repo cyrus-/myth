@@ -40,7 +40,7 @@ let standard_synth_plan : synth_plan =
   ; SynthSaturate 0.25
   ]
 
-let rec saturate_guesses (timeout:float) (s:Sig.t) (env:env) (t:rtree) =
+let saturate_guesses (timeout:float) (s:Sig.t) (env:env) (t:rtree) =
   let rec update n =
     if n <= !max_eguess_size then begin
       update_exps timeout s env t;

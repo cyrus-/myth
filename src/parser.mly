@@ -1,8 +1,6 @@
 %{
 open Lang
 
-exception Internal_error of string
-
 let rec ctor_of_int (n:int) : exp =
   if n = 0
   then ECtor("O", [])

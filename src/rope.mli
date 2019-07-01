@@ -1,5 +1,3 @@
-open Core_kernel
-
 type 'a t
 val empty : 'a t
 val of_list : 'a list -> 'a t

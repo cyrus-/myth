@@ -1,5 +1,5 @@
 (* The set of directories to search for includes *)
-let include_directories : string list ref = ref ["."]
+(* let include_directories : string list ref = ref ["."] *)
 
 (* The initial matching depth of the refinement tree *)
 let match_count : int ref = ref 0
@@ -23,7 +23,7 @@ let pretty_ctors : bool ref = ref true
 let timing_mode : bool ref = ref false
 let print_time_if_timing (f:unit -> 'a) : 'a =
   if !timing_mode then
-    let (time, res) = Util.time_action f in
+    let (time, res) = Util.time_action ~f:f in
     Printf.printf "time (s) = %.3f\n%!" time;
     res
   else

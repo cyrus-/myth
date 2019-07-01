@@ -9,7 +9,7 @@ type metric =
   ; lambdas : int
   }
 
-let rec gen_metric (size:int) (lambdas:int) : metric = { size = size; lambdas = lambdas }
+let gen_metric (size:int) (lambdas:int) : metric = { size = size; lambdas = lambdas }
 
 (***** }}} *****)
 
@@ -79,7 +79,7 @@ let rec gen_eexp (tmo:Timeout.t) (s:Sig.t) (g:Ctx.t) (t:typ) (met:metric) : exp 
       let relevant = gen_eexp_rel tmo s (xrel, trel, bs) g t met in
       Rope.concat weakened relevant
     end in
-      (Hashtbl.set memo_eexp_tbl key ans; ans)
+      (Hashtbl.set memo_eexp_tbl ~key:key ~data:ans; ans)
 
 and gen_eexp_rel (tmo:Timeout.t) (s:Sig.t)
                  ((xrel, trel, bs):id * typ * Ctx.bindspec list)
@@ -95,7 +95,7 @@ and gen_eexp_rel (tmo:Timeout.t) (s:Sig.t)
       else
         gen_eexp_rel_app tmo s (xrel, trel, bs) g t met
     in
-    Hashtbl.set memo_eexp_rel_tbl key ans; ans
+    Hashtbl.set memo_eexp_rel_tbl ~key:key ~data:ans; ans
 
 and gen_eexp_rel_app (tmo:Timeout.t) (s:Sig.t)
                      ((xrel, trel, bs):id * typ * Ctx.bindspec list)
@@ -104,8 +104,8 @@ and gen_eexp_rel_app (tmo:Timeout.t) (s:Sig.t)
   if met.size < 2 then Rope.empty else
   let rec extract_producer t u =
     match u with
-    | TArr (t1, t2) -> if t2 = t then Some u else extract_producer t t2
-    | TBase d -> None
+    | TArr (_, t2) -> if t2 = t then Some u else extract_producer t t2
+    | TBase _ -> None
   in
   let gen_apps ts met
       (e1s_fn:Sig.t -> Ctx.t -> (id * typ * Ctx.bindspec list) -> typ -> metric -> exp Rope.t)
@@ -171,7 +171,7 @@ and gen_eexp_rel_app (tmo:Timeout.t) (s:Sig.t)
   in
   (* (2) xrel does not appear at the head so it appears in the argument *)
   let head_not_relevant = gen_apps producer_types met
-    (fun s g (xrel, trel, bs) t m -> gen_eexp tmo s g t m)
+    (fun s g (_, _, _) t m -> gen_eexp tmo s g t m)
     (fun s g (xrel, trel, bs) t m -> gen_iexp_rel tmo s (xrel, trel, bs) g t m)
   in
   Rope.concat head_relevant head_not_relevant
@@ -216,7 +216,7 @@ and gen_iexp (tmo:Timeout.t) (s:Sig.t) (g:Ctx.t) (t:typ) (met:metric) : exp Rope
       let relevant = gen_iexp_rel tmo s (xrel, trel, bs) g t met in
       Rope.concat weakened relevant
     end in
-    Hashtbl.set memo_iexp_tbl key ans; ans
+    Hashtbl.set memo_iexp_tbl ~key:key ~data:ans; ans
 
 and gen_iexp_rel (tmo:Timeout.t) (s:Sig.t)
                  ((xrel, trel, bs):id * typ * Ctx.bindspec list)
@@ -264,6 +264,6 @@ and gen_iexp_rel (tmo:Timeout.t) (s:Sig.t)
       end
       |> Rope.concat (gen_eexp_rel tmo s (xrel, trel, bs) g t met)
     in
-    Hashtbl.set memo_iexp_rel_tbl key ans; ans
+    Hashtbl.set memo_iexp_rel_tbl ~key:key ~data:ans; ans
 
 (***** }}} *****)

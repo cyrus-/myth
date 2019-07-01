@@ -14,7 +14,7 @@ let rec match_branches (s:Sig.t) (bs:branch list) : (Sig.args_t * branch) list =
       []
   | (p, e)::bs ->
     begin match p with
-      | PCtor (c, xs) ->
+      | PCtor (c, _) ->
         let (s, ctor) = Sig.extract_ctor c s in
         (ctor, (p, e))::(match_branches s bs)
     end
@@ -33,7 +33,7 @@ let rec all_eq (l:'a list) : 'a =
 
 (***** Well-founded recursion {{{ *****)
 
-let rec is_valid_app (g:Ctx.t) (e1:exp) (e2:exp) : bool =
+let is_valid_app (g:Ctx.t) (e1:exp) (e2:exp) : bool =
   let check_recursive_fun g e =
     match e with
     | EVar x -> if Ctx.is_rec_fun x g then Some x else None
@@ -48,7 +48,7 @@ let rec is_valid_app (g:Ctx.t) (e1:exp) (e2:exp) : bool =
   | None -> true
   | Some f -> is_decreasing_arg g f e2
 
-let rec check_recursive_arg_match (g:Ctx.t) (e:exp) : id option =
+let check_recursive_arg_match (g:Ctx.t) (e:exp) : id option =
   match e with
   | EVar x -> Ctx.fetch_dec_fn x g
   | _ -> None
@@ -151,7 +151,7 @@ and tc_branches (s:Sig.t) (g:Ctx.t) (ctors:Sig.t) (fn_opt:id option) (bs:branch 
   let sbs = match_branches ctors bs in
   List.map (fun (ctor, b) -> tc_branch s g ctor fn_opt b) sbs
 
-and tc_branch (s:Sig.t) (g:Ctx.t) (ctor:Sig.args_t) (fn_opt:id option) ((p, e):branch) : typ =
+and tc_branch (s:Sig.t) (g:Ctx.t) (_ctor:Sig.args_t) (fn_opt:id option) ((p, e):branch) : typ =
   let annotate_dec fn_opt g =
     match fn_opt with
     | Some f -> Ctx.mark_as_decreasing f g
@@ -160,7 +160,7 @@ and tc_branch (s:Sig.t) (g:Ctx.t) (ctor:Sig.args_t) (fn_opt:id option) ((p, e):b
   let g'  = Ctx.gather_binders s p |> annotate_dec fn_opt in
   tc_exp s (List.append g' g) e
 
-let rec tc_decl (s:Sig.t) (g:Ctx.t) (d:decl) : Sig.t * Ctx.t =
+let tc_decl (s:Sig.t) (g:Ctx.t) (d:decl) : Sig.t * Ctx.t =
   match d with
   | DData (dt, cs) -> (Sig.append s (Sig.make_sig_from_data dt cs), g)
   | DLet (f, is_rec, xs, t, e) ->
@@ -187,13 +187,13 @@ let rec tc_decl (s:Sig.t) (g:Ctx.t) (d:decl) : Sig.t * Ctx.t =
         else
           (s, Ctx.insert f tarr g)
 
-let rec tc_decls (s:Sig.t) (g:Ctx.t) (ds:decl list) : Sig.t * Ctx.t =
+let tc_decls (s:Sig.t) (g:Ctx.t) (ds:decl list) : Sig.t * Ctx.t =
   List.fold_left (fun (s, g) d -> tc_decl s g d) (s, g) ds
 
-let rec tc_synth_problem (s:Sig.t) (g:Ctx.t) ((x, t, vs):synth_problem) =
+let tc_synth_problem (s:Sig.t) (g:Ctx.t) ((_, t, vs):synth_problem) =
   tc_evidence s g t vs
 
-let rec tc_prog ((ds, p):prog) : Sig.t * Ctx.t =
+let tc_prog ((ds, p):prog) : Sig.t * Ctx.t =
   let (s, g) = tc_decls Sig.empty Ctx.empty ds in
   let _ = tc_synth_problem s g p in
   (s, g)

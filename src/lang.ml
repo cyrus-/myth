@@ -58,7 +58,7 @@ module Sig = struct
   let make_sig_from_data (d:id) (cs:ctor list) : t =
     List.map ~f:(fun (c, ts) -> (c, (ts, d))) cs
 
-  let rec make_sig (ds:decl list) : t =
+  let make_sig (ds:decl list) : t =
     List.fold_left ~f:(fun res d ->
       begin match d with
       | DData (dt, cs) -> List.append (make_sig_from_data dt cs) res
@@ -78,19 +78,19 @@ module Sig = struct
     | (c, (ts, d'))::s ->
       if d = d' then (c, (ts, d'))::(restrict d s) else restrict d s
 
-  let rec extract_ctor (c:id) (s:t) : t * args_t =
+  let extract_ctor (c:id) (s:t) : t * args_t =
     ( Util.remove_first (fun (c', _) -> c = c') s
     , match lookup_ctor c s with
       | Some csig -> csig
       | None -> raise @@ Internal_error (Printf.sprintf "Constructor not found: %s" c) )
 
-  let rec gather_datatypes (s:t) : typ list =
+  let gather_datatypes (s:t) : typ list =
     List.fold_left
       ~f:(fun ts (_, (_, dt)) ->
-        let t = TBase dt in if List.mem ts t (=) then ts else t::ts)
+        let t = TBase dt in if List.mem ts t ~equal:(=) then ts else t::ts)
       ~init:[] s
 
-  let rec gather_ctors (dt:id) (s:t) : ctor_t list =
+  let gather_ctors (dt:id) (s:t) : ctor_t list =
     List.filter ~f:(fun (_, (_, dt')) -> dt = dt') s
 end
 
@@ -146,7 +146,7 @@ module Ctx = struct
 
   let gather_types (g:t) : typ list =
     List.fold_left
-      ~f:(fun ts (_, (t, _)) -> if List.mem ts t (=) then ts else t::ts)
+      ~f:(fun ts (_, (t, _)) -> if List.mem ts t ~equal:(=) then ts else t::ts)
       ~init:[] g
 
   let fetch_rec_arg (f:id) (g:t) : id option =
@@ -178,7 +178,7 @@ module Ctx = struct
 
   let is_dec_arg (x:id) (f:id) (g:t) : bool =
     match Util.lookup x g with
-    | Some (_, bs) -> List.mem bs (BDec f) (=)
+    | Some (_, bs) -> List.mem bs (BDec f) ~equal:(=)
     | None -> false
 
   let is_arg (x:id) (g:t) : bool =
@@ -186,7 +186,7 @@ module Ctx = struct
     | Some (_, bs) -> List.exists ~f:(function | BArg _ -> true | _ -> false) bs
     | None -> false
 
-  let rec mark_as_decreasing (f:id) (g:t) : t =
+  let mark_as_decreasing (f:id) (g:t) : t =
     List.map ~f:(fun (x, (t, bs)) -> (x, (t, (BDec f)::(BArg f)::bs))) g
 
   let size (g:t) : int = List.length g
@@ -229,7 +229,7 @@ let extract_datatype (t:typ) : id =
 
 let rec size (e:exp) : int =
   match e with
-  | EVar x -> 1
+  | EVar _ -> 1
   | EApp (e1, e2) -> 1 + size e1 + size e2
   | EFun (_, e) -> 1 + size e
   | ELet (_, _, _, _, e1, e2) -> 1 + size e1 + size e2
@@ -283,7 +283,7 @@ let is_recursive_fun (g:Ctx.t) (e:exp) : bool =
 let fresh_id_from_list (ids:id list) (base:id) : id =
   let rec fresh n =
     let x = Printf.sprintf "%s%d" base n in
-    if List.mem ids x (=) then fresh (n+1) else x
+    if List.mem ids x ~equal:(=) then fresh (n+1) else x
   in
   fresh 1
 

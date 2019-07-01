@@ -7,8 +7,8 @@ type 'a t =
 let rec map (r : 'a t) ~f : 'b t =
   match r with
   | Concat(lr, rr) -> 
-    let ml = map lr f in
-    let mr = map rr f in
+    let ml = map lr ~f:f in
+    let mr = map rr ~f:f in
     begin match (ml, mr) with
       | OfList [], OfList [] -> OfList []
       | OfList [], _ -> mr
@@ -19,7 +19,7 @@ let rec map (r : 'a t) ~f : 'b t =
 
 let rec iter (r : 'a t) ~f : unit =
   match r with
-  | Concat(lr, rr) -> iter lr f; iter rr f
+  | Concat(lr, rr) -> iter lr ~f:f; iter rr ~f:f
   | OfList l -> List.iter l ~f
 
 let rec to_list (r : 'a t) : 'a list =
