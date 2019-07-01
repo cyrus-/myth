@@ -1,4 +1,4 @@
-open Core
+open Core_kernel
 
 type atom  = int                    (* n, De Bruijn indices *)
 type id    = string                 (* x, C, D, Identifiers *)

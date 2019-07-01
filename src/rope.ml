@@ -1,4 +1,4 @@
-open Core
+open Core_kernel
 
 type 'a t =
   | Concat of 'a t * 'a t

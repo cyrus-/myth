@@ -1,4 +1,4 @@
-open Core
+open Core_kernel
 open Lang
 
 let rec fix_to_let (e:exp) : exp =

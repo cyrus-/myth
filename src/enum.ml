@@ -1,4 +1,4 @@
-open Core
+open Core_kernel
 open Consts
 open Lang
 open Rtree
